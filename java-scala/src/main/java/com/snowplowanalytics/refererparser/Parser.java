@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -129,7 +130,53 @@ public class Parser {
     // 1. Support a list of other hosts which count as internal
     // 2. Have an algo for stripping subdomains before checking match
     if (host == null) return null; // Not a valid URL
-    if (host.equals(pageHost)) return new Referer(Medium.INTERNAL, null, null);
+    
+    String[] internalReferers = new String[] {	//vodafone internal redirects
+    											"my.vodafone.nl",
+    											"m.vodafone.nl",
+    											"zakelijk.vodafone.nl",
+    											"business.vodafone.nl",
+    											"opwaarderen.vodafone.nl",
+												"Opwaarderen.vodafone.nl",
+												"hawaii-doc.prx.vodafone.nl",
+												"ispfabriek.vodafone.nl",
+												"my.previzzi.vodafone.nl",
+												"vast-bellen-en-internetten-fibre.vodafone.nl",
+												"zakelijk-klantenservice-sec.vodafone.nl",
+												"myweb.vodafone.nl",
+												"view.callme.vodafone.nl",
+    											"verlengen.vodafone.nl",
+    											"verlengenzakelijk.vodafone.nl",
+    											"portal.vodafone.nl",
+    											"inruildeals.vodafone.nl",
+    											"over.vodafone.nl",
+    											"forum.vodafone.nl",
+    											"www.vodafone.nl",
+    											"www.vodafone.com",
+    											"salesportal.vodafone.nl",
+    											"campagnes.vodafone.nl",
+    											"handleidingen.vodafone.nl",
+    											"landing.vodafone.nl",
+    											"handleidingen.vodafone.nl",
+    											"myhelp.vodafone.nl",
+    											"help.vodafone.nl",
+    											"directsales.vodafone.nl",
+    											"zakelijk-klantenservice.vodafone.nl",
+    											"shopretail.vodafone.nl",
+    											"my.previzzi.vodafone.nl",
+												"www01.tst.vodafone.nl",
+												"www06.tst.vodafone.nl",
+												"wwwbeta.prx.vodafone.nl",
+    											//payment redirects
+    											"betalen.rabobank.nl",
+    											"www.abnamro.nl",
+    											"bankieren.ideal.ing.nl",
+    											"ideal.snsbank.nl"
+    											
+    											}; //TODO:uit extern bestandje inlezen
+    
+    if (host.equals(pageHost) ||  Arrays.asList(internalReferers).contains(host)) return new Referer(Medium.INTERNAL, null, null);
+
 
     // Try to lookup our referer. First check with paths, then without.
     // This is the safest way of handling lookups

@@ -30,6 +30,7 @@ class ParseTest extends Specification with DataTables { def is =
   "parse should successfully extract referer details from URIs with recognised referers"           ! e1^
   "parse should return unknown when the provided referer URI is not recognised"                    ! e2^
   "parse will (unavoidably) return some false positives as a result of its lookup algorithm"       ! e3^
+  "parse will check for the internal domains of vodafone"									       ! e4^
                                                                                                    end
 
   // Aliases
@@ -88,4 +89,15 @@ class ParseTest extends Specification with DataTables { def is =
       (_, refererUri, medium, source, term) =>
         Parser.parse(refererUri, pageHost) must_== Some(Referer(medium, source, term))
     }
+    
+  //Checking vodafone internal domains 
+  val vodafoneHost = "www.vodafone.nl"
+    
+  def e4 = 
+     "SPEC NAME"            || "REFERER URI"              | "REFERER MEDIUM" | "REFERER SOURCE"    | "REFERER TERM"         |
+     "vodafone internal"    !! "http://my.vodafone.nl"    ! Medium.Internal  ! None                ! None                   |>{
+     (_, refererUri, medium, source, term) =>
+        Parser.parse(refererUri, vodafoneHost) must_== Some(Referer(medium, source, term))  
+     }
+   
 }
