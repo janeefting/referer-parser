@@ -171,7 +171,13 @@ public class Parser {
     											"betalen.rabobank.nl",
     											"www.abnamro.nl",
     											"bankieren.ideal.ing.nl",
-    											"ideal.snsbank.nl"
+    											"ideal.snsbank.nl",
+                          "ideal.asnbank.nl",
+                          "3dsecure.icscards.nl",
+                          "cap.securecode.com",
+                          "live.adyen.com",
+                          "ideal.knab.nl",
+                          "www.paypal.com"
     											
     											}; //TODO:uit extern bestandje inlezen
     
