@@ -17,14 +17,14 @@
 package com.snowplowanalytics.refererparser;
 
 // Java
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
+import java.net.*;
+import java.io.*;
+import java.util.ArrayList;
+import javax.net.ssl.*;
 
 // SnakeYAML
 import org.yaml.snakeyaml.Yaml;
@@ -131,57 +131,9 @@ public class Parser {
     // 2. Have an algo for stripping subdomains before checking match
     if (host == null) return null; // Not a valid URL
     
-    String[] internalReferers = new String[] {	//vodafone internal redirects
-    											"my.vodafone.nl",
-    											"m.vodafone.nl",
-    											"zakelijk.vodafone.nl",
-    											"business.vodafone.nl",
-    											"opwaarderen.vodafone.nl",
-												"Opwaarderen.vodafone.nl",
-												"hawaii-doc.prx.vodafone.nl",
-												"ispfabriek.vodafone.nl",
-												"my.previzzi.vodafone.nl",
-												"vast-bellen-en-internetten-fibre.vodafone.nl",
-												"zakelijk-klantenservice-sec.vodafone.nl",
-												"myweb.vodafone.nl",
-												"view.callme.vodafone.nl",
-    											"verlengen.vodafone.nl",
-    											"verlengenzakelijk.vodafone.nl",
-    											"portal.vodafone.nl",
-    											"inruildeals.vodafone.nl",
-    											"over.vodafone.nl",
-    											"forum.vodafone.nl",
-    											"www.vodafone.nl",
-    											"www.vodafone.com",
-    											"salesportal.vodafone.nl",
-    											"campagnes.vodafone.nl",
-    											"handleidingen.vodafone.nl",
-    											"landing.vodafone.nl",
-    											"handleidingen.vodafone.nl",
-    											"myhelp.vodafone.nl",
-    											"help.vodafone.nl",
-    											"directsales.vodafone.nl",
-    											"zakelijk-klantenservice.vodafone.nl",
-    											"shopretail.vodafone.nl",
-    											"my.previzzi.vodafone.nl",
-												"www01.tst.vodafone.nl",
-												"www06.tst.vodafone.nl",
-												"wwwbeta.prx.vodafone.nl",
-    											//payment redirects
-    											"betalen.rabobank.nl",
-    											"www.abnamro.nl",
-    											"bankieren.ideal.ing.nl",
-    											"ideal.snsbank.nl",
-                          "ideal.asnbank.nl",
-                          "3dsecure.icscards.nl",
-                          "cap.securecode.com",
-                          "live.adyen.com",
-                          "ideal.knab.nl",
-                          "www.paypal.com"
-    											
-    											}; //TODO:uit extern bestandje inlezen
+    ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/sp-bmi-data-assets/internals.txt");
     
-    if (host.equals(pageHost) ||  Arrays.asList(internalReferers).contains(host)) return new Referer(Medium.INTERNAL, null, null);
+    if (host.equals(pageHost) ||  internalReferers.contains(host)) return new Referer(Medium.INTERNAL, null, null);
 
 
     // Try to lookup our referer. First check with paths, then without.
@@ -320,5 +272,72 @@ public class Parser {
     }
 
     return referers;
+  }
+
+
+   /**
+   * Reads the content of a textfile into an arraylist.
+   *
+   * @param txt_url   A string containing the complete urlpath
+   *                  to a web-accessible text file
+   *
+   * @return An arraylist containing all the strings from the textfile
+   */
+    private ArrayList<String> read_https_txt(String txt_url)
+    {
+      
+      //set the url
+      String url_str = txt_url;
+      URL https_url = null;
+      
+      try 
+      {
+        //define the URL and connect
+        https_url = new URL(url_str);
+        
+        //Cast the type to ensure that it has the correct properties
+        HttpsURLConnection con = (HttpsURLConnection)https_url.openConnection();
+        
+          try
+          {
+            InputStreamReader ISR = new InputStreamReader(con.getInputStream());
+            BufferedReader reader = new BufferedReader(ISR);
+             
+            String input;
+            ArrayList<String> result = new ArrayList<>();
+             
+            while ((input = reader.readLine()) != null)
+            {
+              result.add(input);
+            }
+            
+            reader.close();
+            return result;
+          }
+          catch (IOException e) 
+          {
+            e.printStackTrace();
+            return null;
+          }
+      }
+      catch (MalformedURLException e) 
+      {
+        e.printStackTrace();
+        return null;
+      }
+      catch (IOException e)
+      {
+        e.printStackTrace();
+        return null;
+      }
+  }
+
+  private Boolean check_refr_match(String main_string, String to_match)
+  {
+        if (main_string == "*vodafone.nl")
+        {
+          return true;
+        }
+      return false;
   }
 }
