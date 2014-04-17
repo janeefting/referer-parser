@@ -1,38 +1,36 @@
-my.vodafone.nl
-m.vodafone.nl
-zakelijk.vodafone.nl
-business.vodafone.nl
-opwaarderen.vodafone.nl
-Opwaarderen.vodafone.nl
-hawaii-doc.prx.vodafone.nl
-ispfabriek.vodafone.nl
-my.previzzi.vodafone.nl
-vast-bellen-en-internetten-fibre.vodafone.nl
-zakelijk-klantenservice-sec.vodafone.nl
-myweb.vodafone.nl
-view.callme.vodafone.nl
-verlengen.vodafone.nl
-verlengenzakelijk.vodafone.nl
-portal.vodafone.nl
-inruildeals.vodafone.nl
-over.vodafone.nl
-forum.vodafone.nl
-www.vodafone.nl
-www.vodafone.com
-salesportal.vodafone.nl
-campagnes.vodafone.nl
-handleidingen.vodafone.nl
-landing.vodafone.nl
-handleidingen.vodafone.nl
-myhelp.vodafone.nl
-help.vodafone.nl
-directsales.vodafone.nl
-zakelijk-klantenservice.vodafone.nl
-shopretail.vodafone.nl
-my.previzzi.vodafone.nl
-www01.tst.vodafone.nl
-www06.tst.vodafone.nl
-wwwbeta.prx.vodafone.nl
+# File contains the host URLS that should be declared as INTERNAL referers #
+# Make sure that the this file is publicly accessible #
+# #
+# #
+# Main Subdomians #
+# #
+# Matches the ending of a referer url and declares it as internal if it ends with #
+# one of the following strings #
+# #
+# Note! #
+# Be very specific on which url's are posted here as it will use partial matching #
+# instead of the complete string #
+# #
+vodafone.nl
+vodafone.com
+
+_partial_matches_
+# Other Domains #
+# Matches the entire referer url host and declares it as internal if it matches #
+# one of the following strings #
+# #
+# Note! #
+# Include the full host URL #
+# #
+
+# Banking domains #
+# #
+# Matches the entire referer url host and declares it as internal if it matches #
+# one of the following strings #
+# #
+# Note! #
+# Include the full host URL #
+# #
 betalen.rabobank.nl
 www.abnamro.nl
 bankieren.ideal.ing.nl

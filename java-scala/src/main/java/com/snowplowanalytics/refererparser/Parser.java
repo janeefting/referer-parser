@@ -131,9 +131,9 @@ public class Parser {
     // 2. Have an algo for stripping subdomains before checking match
     if (host == null) return null; // Not a valid URL
     
-    ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/sp-bmi-data-assets/internals.txt");
+    //ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/sp-bmi-data-assets/internals.txt");
     
-    if (host.equals(pageHost) ||  internalReferers.contains(host)) return new Referer(Medium.INTERNAL, null, null);
+    if (host.equals(pageHost) ||  check_refr_match(host)) return new Referer(Medium.INTERNAL, null, null);
 
 
     // Try to lookup our referer. First check with paths, then without.
@@ -283,7 +283,7 @@ public class Parser {
    *
    * @return An arraylist containing all the strings from the textfile
    */
-    private ArrayList<String> read_https_txt(String txt_url)
+private ArrayList<String> read_https_txt(String txt_url)
     {
       
       //set the url
@@ -304,11 +304,18 @@ public class Parser {
             BufferedReader reader = new BufferedReader(ISR);
              
             String input;
+            int index = 0;
             ArrayList<String> result = new ArrayList<>();
              
+            
             while ((input = reader.readLine()) != null)
             {
+              
+              if (!input.startsWith("#") && !input.endsWith("#") && !input.equals(""))
+              {
               result.add(input);
+              }
+              index++;
             }
             
             reader.close();
@@ -332,12 +339,37 @@ public class Parser {
       }
   }
 
-  private Boolean check_refr_match(String main_string, String to_match)
-  {
-        if (main_string == "*vodafone.nl")
+    /**
+    * Matches the refr host to strings loaded from a external text file
+    * 
+    * @param host       A string containing the host url
+    *                   of the referer
+    *
+    * @return boolean   returns true when string is matched
+    *                   returns false when string is not matched
+    */
+    private Boolean check_refr_match(String host)
+    {
+      //get the contents of the text file
+      ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/snowplow-bmi-assets/vodafone.nl/internals.txt");
+      
+      //look through all the partial sub-domains
+      //return true when a match is found
+      for (int i = 0; i < internalReferers.indexOf("_partial_matches_"); i++) 
+      {
+        //System.out.println(internalReferers.get(i));
+        if (host.endsWith(internalReferers.get(i)))
         {
           return true;
         }
-      return false;
-  }
+      }
+      //look through the entire list of domains
+      //return true when a match is found
+      if (internalReferers.contains(host))
+          {
+            return true;
+          }
+        return false;
+    }
+
 }
