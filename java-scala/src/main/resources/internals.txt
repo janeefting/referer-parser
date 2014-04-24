@@ -11,10 +11,9 @@
 # Be very specific on which url's are posted here as it will use partial matching #
 # instead of the complete string #
 # #
-vodafone.nl
-vodafone.com
+*vodafone.nl	#comment
+*vodafone.com
 
-_partial_matches_
 # Other Domains #
 # Matches the entire referer url host and declares it as internal if it matches #
 # one of the following strings #

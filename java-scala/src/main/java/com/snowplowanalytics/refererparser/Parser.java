@@ -275,101 +275,202 @@ public class Parser {
   }
 
 
-   /**
-   * Reads the content of a textfile into an arraylist.
-   *
-   * @param txt_url   A string containing the complete urlpath
-   *                  to a web-accessible text file
-   *
-   * @return An arraylist containing all the strings from the textfile
-   */
-private ArrayList<String> read_https_txt(String txt_url)
-    {
-      
-      //set the url
-      String url_str = txt_url;
-      URL https_url = null;
-      
-      try 
+/**
+     * Reads the content of a textfile into an arraylist.
+     *
+     * @param txt_url   A string containing the complete urlpath
+     *                  to a web-accessible text file
+     *
+     * @return An arraylist containing all the strings from the textfile
+     */
+  private ArrayList<String> read_https_txt(String txt_url)
       {
-        //define the URL and connect
-        https_url = new URL(url_str);
         
-        //Cast the type to ensure that it has the correct properties
-        HttpsURLConnection con = (HttpsURLConnection)https_url.openConnection();
+        //set the url
+        String url_str = txt_url;
+        URL https_url = null;
         
-          try
-          {
-            InputStreamReader ISR = new InputStreamReader(con.getInputStream());
-            BufferedReader reader = new BufferedReader(ISR);
-             
-            String input;
-            int index = 0;
-            ArrayList<String> result = new ArrayList<>();
-             
-            
-            while ((input = reader.readLine()) != null)
-            {
-              
-              if (!input.startsWith("#") && !input.endsWith("#") && !input.equals(""))
-              {
-              result.add(input);
-              }
-              index++;
-            }
-            
-            reader.close();
-            return result;
-          }
-          catch (IOException e) 
-          {
-            e.printStackTrace();
-            return null;
-          }
-      }
-      catch (MalformedURLException e) 
-      {
-        e.printStackTrace();
-        return null;
-      }
-      catch (IOException e)
-      {
-        e.printStackTrace();
-        return null;
-      }
-  }
-
-    /**
-    * Matches the refr host to strings loaded from a external text file
-    * 
-    * @param host       A string containing the host url
-    *                   of the referer
-    *
-    * @return boolean   returns true when string is matched
-    *                   returns false when string is not matched
-    */
-    private Boolean check_refr_match(String host)
-    {
-      //get the contents of the text file
-      ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/snowplow-bmi-assets/vodafone.nl/internals.txt");
-      
-      //look through all the partial sub-domains
-      //return true when a match is found
-      for (int i = 0; i < internalReferers.indexOf("_partial_matches_"); i++) 
-      {
-        //System.out.println(internalReferers.get(i));
-        if (host.endsWith(internalReferers.get(i)))
+        try 
         {
-          return true;
+          //define the URL and connect
+          https_url = new URL(url_str);
+          
+          //Cast the type to ensure that it has the correct properties
+          HttpsURLConnection con = (HttpsURLConnection)https_url.openConnection();
+          
+            try
+            {
+              InputStreamReader ISR = new InputStreamReader(con.getInputStream());
+              BufferedReader reader = new BufferedReader(ISR);
+              
+              String input;
+              String temp = "";
+              
+              ArrayList<String> result = new ArrayList<>();
+               
+              while ((input = reader.readLine()) != null)
+              {
+                if (!input.startsWith("#") && !input.equals(""))
+                {
+                  //inline comments are removed at this point 
+                  //to preserve only the input string required for parsing
+                  if (input.contains("#"))
+                  {
+                    temp = input.substring(0, input.indexOf("#"));
+                    //Spaces between the original string and the comment are removed
+                    temp = temp.replaceAll("\t", "");
+                    temp = temp.replaceAll(" ", "");
+                    result.add(temp);
+                  }
+                  else
+                  {
+                    result.add(input);
+                  }         
+                }
+              }
+              
+              reader.close();
+              return result;
+            }
+            catch (IOException e) 
+            {
+              e.printStackTrace();
+              return null;
+            }
         }
-      }
-      //look through the entire list of domains
-      //return true when a match is found
-      if (internalReferers.contains(host))
-          {
-            return true;
-          }
-        return false;
+        catch (MalformedURLException e) 
+        {
+          e.printStackTrace();
+          return null;
+        }
+        catch (IOException e)
+        {
+          e.printStackTrace();
+          return null;
+        }
     }
+
+      /**
+      * Matches the refr host to strings loaded from a external text file
+      * 
+      * @param host       A string containing the host url
+      *                   of the referer
+      *
+      * @return boolean   returns true when string is matched
+      *                   returns false when string is not matched
+      */
+      private Boolean check_refr_match(String host)
+      {
+        //get the contents of the text file
+        ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/snowplow-bmi-assets/vodafone.nl/internals.txt");
+        //ArrayList<String> internalReferers = new ArrayList<String>();
+        //internalReferers.add("*vo*da*fo*ne*.nl*");
+        //internalReferers.add("*vodafone.nl");
+        //internalReferers.add("*vodafone.com");
+        
+        boolean result = false;
+        
+          for (String line : internalReferers) 
+          {
+            if (line.contains("*"))
+            { 
+              int card_count = line.length() - line.replace("*", "").length();
+              boolean first = false;
+              boolean last = false;
+              
+              if (line.substring(0, 1).equals("*")) first = true;
+              if (line.substring(line.length()-1, line.length()).equals("*")) last = true;
+              
+              //if the line is just a wildcard
+              if (line.equals("*")) 
+              {
+                result = true;
+              }
+              else if (first && card_count == 1 && host.contains((line.substring(1,line.length()))))
+              {
+                result = true;
+              }
+              else if (first && card_count == 1 && !host.contains((line.substring(1,line.length()))))
+              {
+                result = false;
+              }
+              else if (last && card_count == 1 && host.contains((line.substring(0, line.length() - 1))))
+              {
+                result = true;
+              }
+              else if (last && card_count == 1 && !host.contains((line.substring(0, line.length() - 1))))
+              {
+                result = false;
+              }
+              else
+              {
+                int part_count = line.length() - line.replace("*", "").length() + 1;
+                int match_count = 0;
+                
+                if (first) 
+                {
+                  part_count--;
+                  line = line.substring(1 , line.length());
+                }
+                else 
+                {
+                  String match_part = line.substring(0, line.indexOf("*"));
+                  if (host.startsWith(match_part))
+                  {
+                    match_count++;
+                    line = line.substring(line.indexOf("*"),line.length());
+                  }
+                }
+                if (last) 
+                {
+                  part_count--;
+                  line = line.substring(0, line.length()-1);
+                }
+                else 
+                {
+                  String match_part = line.substring(line.lastIndexOf("*"), line.length());
+                  if (host.endsWith(match_part))
+                  {
+                    match_count++;
+                    line = line.substring(0,line.lastIndexOf("*"));
+                  }
+                }
+                
+                String match_part = "";
+                
+                for (int i = 0; i < part_count; i++) 
+                {
+                  if (line.contains("*"))
+                  {
+                    match_part = line.substring(0, line.indexOf("*"));
+                    line = line.substring(line.indexOf("*") + 1, line.length());
+                  }
+                  else 
+                  {
+                    match_part = line;
+                  }
+                  if (host.indexOf(match_part) < 0)
+                  {
+                    result = false;
+                  }
+                  else if (host.indexOf(match_part) >= 0)
+                  {
+                    
+                    match_count++;
+                  }
+                  
+                  if (match_count == part_count) result = true;
+            }
+                  
+              }
+            }
+            else if (line.equals(host))
+            {
+              result = true;
+            }
+            if (result) return result;
+      }
+        return result;    
+      }
 
 }

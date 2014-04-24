@@ -38,6 +38,7 @@ object BuildSettings {
     mergeStrategy in assembly <<= (mergeStrategy in assembly) {
       (old) => {
         case x if x.startsWith("META-INF\\") => MergeStrategy.discard
+        case x if x.startsWith("META-INF/") => MergeStrategy.discard
 		//case "MANIFEST.MF" => MergeStrategy.discard
 		//case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
         case x => old(x)
