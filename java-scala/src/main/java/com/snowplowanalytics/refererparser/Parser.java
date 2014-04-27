@@ -420,7 +420,7 @@ public class Parser {
       //convert the * wildcard into regex and add it to the string
       if (c == '*') string_builder.append("(.*)");
       //convert the _ into regex and add it to the string
-      else if (c == '_') string_builder.append("\\S{1}");
+      else if (c == '_') string_builder.append("\\S{0,1}");
       //convert the chars and digits into regex and add to the string
       else if (Character.isLetter(c)) string_builder.append( c );
       else if (Character.isDigit(c)) string_builder.append(c );
