@@ -25,6 +25,7 @@ import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 import javax.net.ssl.*;
+import java.util.regex.Pattern;
 
 // SnakeYAML
 import org.yaml.snakeyaml.Yaml;
@@ -274,14 +275,38 @@ public class Parser {
     return referers;
   }
 
-
-/**
+  /**
+      * Matches the refr host to strings loaded from a external text file
+      * 
+      * @param host       A string containing the host url
+      *                   of the referer
+      *
+      * @return boolean   returns true when string is matched
+      *                   returns false when string is not matched
+      */
+      private Boolean check_refr_match(String host)
+      {
+        //Read textfile from https location
+        ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/snowplow-bmi-assets/vodafone.nl/internals.txt");
+        
+        boolean result = false;
+        
+          for (String line : internalReferers) 
+          {
+            //check if host matches the regex line
+            if (regex_mathcer(host, line)) {result = true; break;}
+          }
+        return result;    
+      }
+  
+  /**
      * Reads the content of a textfile into an arraylist.
      *
      * @param txt_url   A string containing the complete urlpath
      *                  to a web-accessible text file
      *
-     * @return An arraylist containing all the strings from the textfile
+     * @return ArrayList<String>  An arraylist containing all the 
+     *              strings from the textfile
      */
   private ArrayList<String> read_https_txt(String txt_url)
       {
@@ -350,127 +375,62 @@ public class Parser {
         }
     }
 
-      /**
-      * Matches the refr host to strings loaded from a external text file
-      * 
-      * @param host       A string containing the host url
-      *                   of the referer
-      *
-      * @return boolean   returns true when string is matched
-      *                   returns false when string is not matched
-      */
-      private Boolean check_refr_match(String host)
-      {
-        //get the contents of the text file
-        ArrayList<String> internalReferers = read_https_txt("https://s3-eu-west-1.amazonaws.com/snowplow-bmi-assets/vodafone.nl/internals.txt");
-        //ArrayList<String> internalReferers = new ArrayList<String>();
-        //internalReferers.add("*vo*da*fo*ne*.nl*");
-        //internalReferers.add("*vodafone.nl");
-        //internalReferers.add("*vodafone.com");
-        
-        boolean result = false;
-        
-          for (String line : internalReferers) 
-          {
-            if (line.contains("*"))
-            { 
-              int card_count = line.length() - line.replace("*", "").length();
-              boolean first = false;
-              boolean last = false;
-              
-              if (line.substring(0, 1).equals("*")) first = true;
-              if (line.substring(line.length()-1, line.length()).equals("*")) last = true;
-              
-              //if the line is just a wildcard
-              if (line.equals("*")) 
-              {
-                result = true;
-              }
-              else if (first && card_count == 1 && host.contains((line.substring(1,line.length()))))
-              {
-                result = true;
-              }
-              else if (first && card_count == 1 && !host.contains((line.substring(1,line.length()))))
-              {
-                result = false;
-              }
-              else if (last && card_count == 1 && host.contains((line.substring(0, line.length() - 1))))
-              {
-                result = true;
-              }
-              else if (last && card_count == 1 && !host.contains((line.substring(0, line.length() - 1))))
-              {
-                result = false;
-              }
-              else
-              {
-                int part_count = line.length() - line.replace("*", "").length() + 1;
-                int match_count = 0;
-                
-                if (first) 
-                {
-                  part_count--;
-                  line = line.substring(1 , line.length());
-                }
-                else 
-                {
-                  String match_part = line.substring(0, line.indexOf("*"));
-                  if (host.startsWith(match_part))
-                  {
-                    match_count++;
-                    line = line.substring(line.indexOf("*"),line.length());
-                  }
-                }
-                if (last) 
-                {
-                  part_count--;
-                  line = line.substring(0, line.length()-1);
-                }
-                else 
-                {
-                  String match_part = line.substring(line.lastIndexOf("*"), line.length());
-                  if (host.endsWith(match_part))
-                  {
-                    match_count++;
-                    line = line.substring(0,line.lastIndexOf("*"));
-                  }
-                }
-                
-                String match_part = "";
-                
-                for (int i = 0; i < part_count; i++) 
-                {
-                  if (line.contains("*"))
-                  {
-                    match_part = line.substring(0, line.indexOf("*"));
-                    line = line.substring(line.indexOf("*") + 1, line.length());
-                  }
-                  else 
-                  {
-                    match_part = line;
-                  }
-                  if (host.indexOf(match_part) < 0)
-                  {
-                    result = false;
-                  }
-                  else if (host.indexOf(match_part) >= 0)
-                  {
-                    
-                    match_count++;
-                  }
-                  
-                  if (match_count == part_count) result = true;
-            }
-                  
-              }
-            }
-            else if (line.equals(host))
-            {
-              result = true;
-            }
-            if (result) return result;
-      }
-        return result;    
-      }
+  /**
+     *  Attempts to match an input sting with a string that 
+     *  will be converted into regex and returns the result
+     *
+     * @param input_string    The string that needs to be matched
+     *
+     * @param regex_string  The string that needs to be converted into
+     *            a regular expression
+     *
+     * @return boolean    A boolean declaring whether the input string 
+     *            matches the regular expression
+     */
+  public static boolean regex_mathcer(String input_string,String regex_string)
+  {
+    boolean result = false;
+    
+    //generate the regex from the regex_string
+    Pattern pattern = regex_generator(regex_string);
+    
+    //determines whether the input_string matches the regex_string
+    if (pattern.matcher(input_string).matches()) result = true;
+    
+    return result;
+  }
+  
+  /**
+     * Converts a string into a regex pattern using * and _ as wildcards
+     *
+     * @param input_string    A string that needs to be converted into a 
+     *            regex pattern.  Does not need to contain wildcards
+     *
+     * @return Pattern    A regex pattern containing the generated regular expression
+     */
+  public static Pattern regex_generator(String input_string)
+  {
+    //string builder to build the regex
+    StringBuilder string_builder = new StringBuilder();
+    
+    //for that loops through all the chars in the input_string
+    for (int i = 0; i < input_string.length(); i++)
+    {
+      char c = input_string.charAt(i);
+      //convert the * wildcard into regex and add it to the string
+      if (c == '*') string_builder.append("(.*)");
+      //convert the _ into regex and add it to the string
+      else if (c == '_') string_builder.append("\\S{1}");
+      //convert the chars and digits into regex and add to the string
+      else if (Character.isLetter(c)) string_builder.append( c );
+      else if (Character.isDigit(c)) string_builder.append(c );
+      //convert others into escaped regex and add to string
+      else string_builder.append("\\" + c);
+    }
+    
+    //compile regex and return the Pattern
+    return Pattern.compile(string_builder.toString());
+    
+  }
 
 }
