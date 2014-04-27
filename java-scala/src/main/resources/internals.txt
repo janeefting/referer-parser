@@ -1,35 +1,32 @@
-# File contains the host URLS that should be declared as INTERNAL referers #
-# Make sure that the this file is publicly accessible #
-# #
-# #
-# Main Subdomians #
-# #
-# Matches the ending of a referer url and declares it as internal if it ends with #
-# one of the following strings #
-# #
-# Note! #
-# Be very specific on which url's are posted here as it will use partial matching #
-# instead of the complete string #
-# #
-*vodafone.nl	#comment
+#####################################################################################
+# File contains the host URLS that should be declared as INTERNAL referers          #
+# Make sure that the this file is publicly accessible                               #
+#####################################################################################
+# Note: Wildcards                                                                   #
+#################                                                                   #
+# Wildcards are supported in order to make domain matching simpler.                 #
+#                                                                                   #
+# Example:                                                                          #
+# *vodafone.nl     The * will match 0 or more characters and the rest of the        #
+#                  characters will be matched exactly                               #
+# www.vodafone.__  The _ will match 0 or 1 of any non-whitespace chatacter and the  #
+#                  rest of the characters will be matched exactly                   #
+#####################################################################################
+# Note: Comments                                                                    #
+#################                                                                   #
+# Comments and inline comments are supported.                                       #
+#                                                                                   #
+# Example:                                                                          #
+# #This is a normal comment                                                         #
+# ___fone.*  #this is an inline comment                                             #
+#####################################################################################
+# Subdomians
+##############
+*vodafone.nl
 *vodafone.com
 
-# Other Domains #
-# Matches the entire referer url host and declares it as internal if it matches #
-# one of the following strings #
-# #
-# Note! #
-# Include the full host URL #
-# #
-
-# Banking domains #
-# #
-# Matches the entire referer url host and declares it as internal if it matches #
-# one of the following strings #
-# #
-# Note! #
-# Include the full host URL #
-# #
+# Banking domains
+#################
 betalen.rabobank.nl
 www.abnamro.nl
 bankieren.ideal.ing.nl
